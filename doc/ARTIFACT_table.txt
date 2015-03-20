@@ -1,0 +1,22 @@
+Default Table Name: ARTIFACT
+
+	Rows: ArtifactId
+		Column Family: RAW_BYTES
+			Column Qualifier: <Line Number>
+				Values: <raw data at said line number>
+
+		Column  Family: ARTIFACT_ENTRY
+			Column Qualfiier:ArtifactId
+				Values:<serialized artifact>
+
+		Column Family: ArtifactId
+			Column Qualifier: DEFINITIONS
+				Values: <serialized definitions from xml>
+		Column Family: ArtifactId : FIELD
+			Column Qualifier: SET + SET#
+				Values: SET DATA for the FIELD
+
+
+		
+
+		

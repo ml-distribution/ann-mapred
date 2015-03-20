@@ -1,0 +1,12 @@
+Default Table Name: CONGRESS
+
+	Rows: ArtifactId
+		Column Family: NEURON
+			Column Qualifer: <Neuron's hash>
+				Value: <Serialized Neuron>
+
+			Column Qualifier: <Neuron's hash> IN USE
+				Values: true | false
+			
+			Column Qualifier: <Neuron's hash> TRAINED INPUT COUNT
+				Value: 0 -> # of total inputs

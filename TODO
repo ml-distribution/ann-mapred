@@ -1,0 +1,9 @@
+Codebase
+	-Change JUL to SLF4J loggers
+	-Document everything externally
+	-Javadoc everthing
+	-Populate examples
+	-Remove hard coded NEURON and CONGRESS values
+CongressNetwork.java
+	-Remove hardcoded learning rate and threshold
+	
