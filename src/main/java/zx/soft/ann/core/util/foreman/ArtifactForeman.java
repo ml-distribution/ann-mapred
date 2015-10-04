@@ -6,11 +6,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.core.exception.ArtifactException;
 import zx.soft.ann.core.exception.RepositoryException;
@@ -18,14 +18,14 @@ import zx.soft.ann.core.model.Artifact;
 
 public class ArtifactForeman {
 
-	private static final Logger log = Logger.getLogger(ArtifactForeman.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ArtifactForeman.class);
 
 	private AccumuloForeman aForeman = new AccumuloForeman();
-	Map<String, Map<Integer, String>> artifactMap = new HashMap<String, Map<Integer, String>>();
+	Map<String, Map<Integer, String>> artifactMap = new HashMap<>();
 
 	public void register(String artifactId, int position, String value) {
 		if (artifactMap.get(artifactId) == null) {
-			Map<Integer, String> map = new HashMap<Integer, String>();
+			Map<Integer, String> map = new HashMap<>();
 			map.put(position, value);
 			artifactMap.put(artifactId, map);
 		} else {
@@ -38,14 +38,13 @@ public class ArtifactForeman {
 		try {
 			aForeman.connect();
 		} catch (RepositoryException e) {
-			String gripe = "Could not connect the Artifact Foreman.";
-			log.log(Level.SEVERE, gripe, e);
-			throw new ArtifactException(gripe, e);
+			logger.error("Could not connect the Artifact Foreman: .", e);
+			throw new ArtifactException("Could not connect the Artifact Foreman.", e);
 		}
 	}
 
 	public List<Artifact> returnArtifacts() throws ArtifactException {
-		List<Artifact> toReturn = new ArrayList<Artifact>();
+		List<Artifact> toReturn = new ArrayList<>();
 		Iterator<Entry<String, Map<Integer, String>>> it = artifactMap.entrySet().iterator();
 		if (it.hasNext()) {
 			Artifact toAdd = new Artifact();
@@ -71,9 +70,8 @@ public class ArtifactForeman {
 					toReturn.add(Artifact.inflate(entry.getKey().getRow().toString(), entry.getValue().toString()));
 				}
 			} catch (RepositoryException e) {
-				String gripe = "Could not return artifacts from the dataspace.";
-				log.log(Level.SEVERE, gripe, e);
-				throw new ArtifactException(gripe, e);
+				logger.error("Could not return artifacts from the dataspace: {}.", e);
+				throw new ArtifactException("Could not return artifacts from the dataspace.", e);
 			}
 
 		}
@@ -98,12 +96,10 @@ public class ArtifactForeman {
 						.getArtifactRepository().artifactEntry(), artifactId, serialized);
 
 			} catch (RepositoryException e) {
-				String gripe = "Could not persist artifacts in the dataspace";
-				log.log(Level.SEVERE, gripe, e);
-				throw new ArtifactException(gripe, e);
+				logger.error("Could not persist artifacts in the dataspace: {}.", e);
+				throw new ArtifactException("Could not persist artifacts in the dataspace", e);
 			}
 		}
-
 	}
 
 }

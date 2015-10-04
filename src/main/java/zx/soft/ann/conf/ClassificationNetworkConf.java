@@ -13,9 +13,6 @@ import org.encog.engine.network.activation.ActivationSigmoid;
  */
 public class ClassificationNetworkConf extends NetworkConf implements Serializable {
 
-	/**
-	 * Only important  for the Serializable interface
-	 */
 	private static final long serialVersionUID = 8482110912070036554L;
 
 	/**

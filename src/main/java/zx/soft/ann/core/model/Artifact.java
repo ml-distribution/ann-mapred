@@ -4,14 +4,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.accumulo.core.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,13 +22,13 @@ import zx.soft.ann.core.exception.ArtifactException;
 
 public class Artifact {
 
-	private static final Logger log = Logger.getLogger(Artifact.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Artifact.class);
 
-	private List<String> fields = new ArrayList<String>();
-	private List<Pair<String, String>> fieldMap = new ArrayList<Pair<String, String>>();
+	private List<String> fields = new ArrayList<>();
+	private List<Pair<String, String>> fieldMap = new ArrayList<>();
 	private String artifactId = "";
 	int lineSize = 0;
-	private ArrayList<String> organizedFile = new ArrayList<String>();
+	private ArrayList<String> organizedFile = new ArrayList<>();
 
 	public List<String> getFields() {
 		return fields;
@@ -39,7 +39,7 @@ public class Artifact {
 	}
 
 	public List<String> getValue(String field) {
-		List<String> toReturn = new ArrayList<String>();
+		List<String> toReturn = new ArrayList<>();
 		for (Pair<String, String> entry : fieldMap) {
 			if (entry.getFirst().startsWith(field)) {
 				toReturn.add(entry.getSecond());
@@ -86,17 +86,14 @@ public class Artifact {
 			Element docEle = dom.getDocumentElement();
 			walk(docEle);
 		} catch (IOException e) {
-			String gripe = "Could not parse artifact XML ";
-			log.log(Level.SEVERE, gripe, e);
-			throw new ArtifactException(gripe, e);
+			logger.error("Could not parse artifact XML: {}", e);
+			throw new ArtifactException("Could not parse artifact XML ", e);
 		} catch (ParserConfigurationException e) {
-			String gripe = "Could not parse artifact XML ";
-			log.log(Level.SEVERE, gripe, e);
-			throw new ArtifactException(gripe, e);
+			logger.error("Could not parse artifact XM: {}", e);
+			throw new ArtifactException("Could not parse artifact XML ", e);
 		} catch (SAXException e) {
-			String gripe = "Could not parse artifact XML ";
-			log.log(Level.SEVERE, gripe, e);
-			throw new ArtifactException(gripe, e);
+			logger.error("Could not parse artifact XML: {}", e);
+			throw new ArtifactException("Could not parse artifact XML ", e);
 		}
 	}
 

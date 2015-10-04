@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -35,6 +33,8 @@ import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.io.Text;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.util.obj.SerializeObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.conf.ClassificationNetworkConf;
 import zx.soft.ann.conf.CongressNetworkConf;
@@ -47,11 +47,11 @@ import zx.soft.ann.core.util.MnemosyneConstants;
 
 public class AccumuloForeman implements Foreman {
 
+	private static final Logger logger = LoggerFactory.getLogger(AccumuloForeman.class);
+
 	private Connector conn;
-	private static final Logger log = Logger.getLogger(AccumuloForeman.class.getName());
 
 	public AccumuloForeman() {
-		//
 	}
 
 	@SuppressWarnings("deprecation")
@@ -63,11 +63,11 @@ public class AccumuloForeman implements Foreman {
 					.getAccumuloPassword().getBytes());
 		} catch (AccumuloException e) {
 			String gripe = "Could not connect the Accumulo Foreman. Check the configuration files.";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (AccumuloSecurityException e) {
 			String gripe = "Could not connect the Accumulo Foreman. Check the configuration files.";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 		return true;
@@ -76,7 +76,7 @@ public class AccumuloForeman implements Foreman {
 	public Connector getConnector() throws RepositoryException {
 		if (conn == null) {
 			String gripe = "Could not grab the Accumulo Connector. Check Accumulo.";
-			log.log(Level.SEVERE, gripe);
+			logger.error(gripe);
 			throw new RepositoryException(gripe);
 		}
 		return conn;
@@ -85,7 +85,7 @@ public class AccumuloForeman implements Foreman {
 	public TableOperations getTableOps() throws RepositoryException {
 		if (conn == null || conn.tableOperations() == null) {
 			String gripe = "Could not modify tables in Accumulo. Check Accumulo.";
-			log.log(Level.SEVERE, gripe);
+			logger.error(gripe);
 			throw new RepositoryException(gripe);
 		}
 		return conn.tableOperations();
@@ -97,7 +97,7 @@ public class AccumuloForeman implements Foreman {
 		while (it.hasNext()) {
 			Entry<String, String> entry = (it.next());
 			if (!entry.getKey().startsWith("!")) {
-				log.log(Level.INFO, "Deleting " + entry.getKey() + " ... ");
+				logger.error("Deleting " + entry.getKey() + " ... ");
 				this.deleteTable(entry.getKey());
 			}
 		}
@@ -110,15 +110,15 @@ public class AccumuloForeman implements Foreman {
 			tableOps.delete(name);
 		} catch (AccumuloException e) {
 			String gripe = "Could not delete this table from Accumulo:" + name;
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (AccumuloSecurityException e) {
 			String gripe = "Could not delete this table from Accumulo:" + name;
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (TableNotFoundException e) {
 			String gripe = "Could not delete this table from Accumulo:" + name + " (It doesn't exist)";
-			log.log(Level.WARNING, gripe);
+			logger.error(gripe);
 
 		}
 
@@ -135,7 +135,7 @@ public class AccumuloForeman implements Foreman {
 			writer = conn.createBatchWriter(tableName, memBuf, timeout, numThreads);
 		} catch (TableNotFoundException e) {
 			String gripe = "Could not write to " + tableName + " (It doesn't exist)";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 		return writer;
@@ -152,7 +152,7 @@ public class AccumuloForeman implements Foreman {
 			writer.close();
 		} catch (MutationsRejectedException e) {
 			String gripe = "Could not assert this mutation:table=" + table + " row=" + row + " fam=" + fam;
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 
@@ -169,19 +169,19 @@ public class AccumuloForeman implements Foreman {
 			tableOps.create(tableName);
 		} catch (AccumuloException e) {
 			String gripe = "Could not create table:" + tableName;
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (AccumuloSecurityException e) {
 			String gripe = "Could not create table:" + tableName;
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (TableExistsException e) {
 			String gripe = "Could not create table:" + tableName + " (Table already exists)";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			return;
 		}
 
-		log.log(Level.INFO, tableName + " created ...");
+		logger.info(tableName + " created ...");
 
 	}
 
@@ -190,7 +190,7 @@ public class AccumuloForeman implements Foreman {
 		Authorizations auths = new Authorizations(MnemosyneConstants.getDefaultAuths());
 
 		Scanner scan;
-		List<Entry<Key, Value>> toRet = new ArrayList<Entry<Key, Value>>();
+		List<Entry<Key, Value>> toRet = new ArrayList<>();
 		try {
 			scan = conn.createScanner(table, auths);
 			scan.setRange(Range.exact(row));
@@ -200,7 +200,7 @@ public class AccumuloForeman implements Foreman {
 			}
 		} catch (TableNotFoundException e) {
 			String gripe = "Couldn't fetch columns. (Table does not exist)";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 
@@ -211,7 +211,7 @@ public class AccumuloForeman implements Foreman {
 		Authorizations auths = new Authorizations(MnemosyneConstants.getDefaultAuths());
 
 		Scanner scan;
-		List<Entry<Key, Value>> toRet = new ArrayList<Entry<Key, Value>>();
+		List<Entry<Key, Value>> toRet = new ArrayList<>();
 		try {
 			scan = conn.createScanner(table, auths);
 			scan.fetchColumnFamily(new Text(fam));
@@ -220,7 +220,7 @@ public class AccumuloForeman implements Foreman {
 			}
 		} catch (TableNotFoundException e) {
 			String gripe = "Couldn't fetch columns. (Table does not exist)";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 
@@ -229,7 +229,7 @@ public class AccumuloForeman implements Foreman {
 
 	public List<Entry<Key, Value>> fetchByQualifier(String table, String fam, String qual) throws RepositoryException {
 		Authorizations auths = new Authorizations(MnemosyneConstants.getDefaultAuths());
-		List<Entry<Key, Value>> toRet = new ArrayList<Entry<Key, Value>>();
+		List<Entry<Key, Value>> toRet = new ArrayList<>();
 		Scanner scan;
 		try {
 			scan = conn.createScanner(table, auths);
@@ -239,7 +239,7 @@ public class AccumuloForeman implements Foreman {
 			}
 		} catch (TableNotFoundException e) {
 			String gripe = "Could not fetch columns. (Table:" + table + " doesn't exist)";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 
@@ -268,7 +268,7 @@ public class AccumuloForeman implements Foreman {
 			this.add(TABLE_TO_SAVE, artifactId, AccumuloForeman.getBaseNetworkRepository().baseError(), artifactId, "1");
 		} catch (IOException e) {
 			String gripe = "Could not save a base network in Accumulo.";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 
@@ -285,11 +285,11 @@ public class AccumuloForeman implements Foreman {
 
 		} catch (IOException e) {
 			String gripe = "Could not inflate a network from Accumulo";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (ClassNotFoundException e) {
 			String gripe = "Attempted to inflate a network from Accumulo. It wasn't of type BaseNetwork";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 		return null;
@@ -342,11 +342,11 @@ public class AccumuloForeman implements Foreman {
 			}
 		} catch (IOException e) {
 			String gripe = "Could not inflate the Base Network Configuration for " + artifactId;
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (ClassNotFoundException e) {
 			String gripe = "Attempted to inflate a Base Network Configuration that returned object not in type ClassificationNetworkConf";
-			log.log(Level.SEVERE, gripe, e);
+			logger.error(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 		return null;
@@ -380,7 +380,7 @@ public class AccumuloForeman implements Foreman {
 					.getBaseNetworkRepository().trainData(), artifactId + System.currentTimeMillis() + "", arr);
 		} catch (IOException e) {
 			String gripe = "Couldn't add training data for " + artifactId;
-			log.log(Level.SEVERE, gripe, e);
+			logger.info(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 	}
@@ -402,12 +402,12 @@ public class AccumuloForeman implements Foreman {
 				}
 			} catch (IOException e) {
 				String gripe = "Could not get this past training input :" + key.toString();
-				log.log(Level.SEVERE, gripe, e);
+				logger.info(gripe, e);
 				throw new RepositoryException(gripe, e);
 			} catch (ClassNotFoundException e) {
 				String gripe = "Could not inflate this past training input:" + key.toString()
 						+ " (Inflated input is not of type InputOutputHolder)";
-				log.log(Level.SEVERE, gripe, e);
+				logger.info(gripe, e);
 				throw new RepositoryException(gripe, e);
 			}
 
@@ -432,12 +432,12 @@ public class AccumuloForeman implements Foreman {
 				}
 			} catch (IOException e) {
 				String gripe = "Could not get this past training input :" + key.toString();
-				log.log(Level.SEVERE, gripe, e);
+				logger.info(gripe, e);
 				throw new RepositoryException(gripe, e);
 			} catch (ClassNotFoundException e) {
 				String gripe = "Could not inflate this past training input:" + key.toString()
 						+ " (Inflated input is not of type InputOutputHolder)";
-				log.log(Level.SEVERE, gripe, e);
+				logger.info(gripe, e);
 				throw new RepositoryException(gripe, e);
 			}
 
@@ -461,12 +461,12 @@ public class AccumuloForeman implements Foreman {
 					pastOutputs.add(store.getOutput());
 				} catch (IOException e) {
 					String gripe = "Could not get past training output:" + key.toString();
-					log.log(Level.SEVERE, gripe, e);
+					logger.info(gripe, e);
 					throw new RepositoryException(gripe, e);
 				} catch (ClassNotFoundException e) {
 					String gripe = "Could not inflate a past training output:" + key.toString()
 							+ " (Type is not InputOutputHolder)";
-					log.log(Level.SEVERE, gripe, e);
+					logger.info(gripe, e);
 					throw new RepositoryException(gripe, e);
 				}
 
@@ -483,7 +483,7 @@ public class AccumuloForeman implements Foreman {
 			SerializeObject.save(new File(fileName), n);
 		} catch (IOException e) {
 			String gripe = "Failed to save a network to a file";
-			log.log(Level.SEVERE, gripe, e);
+			logger.info(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 	}
@@ -550,7 +550,7 @@ public class AccumuloForeman implements Foreman {
 			}
 		} catch (TableNotFoundException e) {
 			String gripe = "Couldn't fetch columns. (Table does not exist)";
-			log.log(Level.SEVERE, gripe, e);
+			logger.info(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 
@@ -633,15 +633,15 @@ public class AccumuloForeman implements Foreman {
 			}
 		} catch (IOException e) {
 			String gripe = "Could not inflate a network from Accumulo";
-			log.log(Level.SEVERE, gripe, e);
+			logger.info(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (ClassNotFoundException e) {
 			String gripe = "Attempted to inflate a network from Accumulo. It wasn't of type BaseNetwork";
-			log.log(Level.SEVERE, gripe, e);
+			logger.info(gripe, e);
 			throw new RepositoryException(gripe, e);
 		} catch (RepositoryException e) {
 			String gripe = "Attempted to inflate a network from Accumulo. It wasn't of type BaseNetwork";
-			log.log(Level.SEVERE, gripe, e);
+			logger.info(gripe, e);
 			throw new RepositoryException(gripe, e);
 		}
 		return toReturn;

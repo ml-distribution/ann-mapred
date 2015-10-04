@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
@@ -16,6 +14,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.encog.engine.network.activation.ActivationSigmoid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.conf.ClassificationNetworkConf;
 import zx.soft.ann.conf.HadoopJobConfiguration;
@@ -40,7 +40,7 @@ import zx.soft.ann.core.util.foreman.HadoopForeman;
  */
 public class BaseNetworkBuilderProcess implements MnemosyneProcess {
 
-	private final static Logger log = Logger.getLogger(BaseNetworkBuilderProcess.class.getName());
+	private final static Logger logger = LoggerFactory.getLogger(BaseNetworkBuilderProcess.class);
 
 	/**
 	 * For every artifact, Build a base network in Accumulo
@@ -55,7 +55,7 @@ public class BaseNetworkBuilderProcess implements MnemosyneProcess {
 			conf.setMapperClass(BaseNetworkBuilderMapper.class);
 			conf.overrideDefaultTable(AccumuloForeman.getArtifactRepositoryName());
 			conf.setJarClass(this.getClass());
-			Collection<Pair<Text, Text>> cfPairs = new ArrayList<Pair<Text, Text>>();
+			Collection<Pair<Text, Text>> cfPairs = new ArrayList<>();
 			cfPairs.add(new Pair<Text, Text>(new Text(artifact.getArtifactId()), null));
 			conf.setFetchColumns(cfPairs);
 			conf.setInputFormatClass(AccumuloInputFormat.class);
@@ -106,9 +106,8 @@ public class BaseNetworkBuilderProcess implements MnemosyneProcess {
 				NNProcessor processor = NNProcessorFactory.getProcessorBean(conf);
 				processor.constructNetworks(metadata.getArtifactId());
 			} catch (RepositoryException e) {
-				String gripe = "Access to the Repository Services died";
-				log.log(Level.SEVERE, gripe, e);
-				throw new StopMapperException(gripe, e);
+				logger.error("Access to the Repository Services died: {}", e.toString());
+				throw new StopMapperException("Access to the Repository Services died", e);
 			}
 
 		}

@@ -42,7 +42,7 @@ public class ArtifactBuilderProcess implements MnemosyneProcess {
 		conf.setMapperClass(ArtifactBuilderMapper.class);
 		conf.overrideDefaultTable(AccumuloForeman.getArtifactRepositoryName());
 
-		Collection<Pair<Text, Text>> cfPairs = new ArrayList<Pair<Text, Text>>();
+		Collection<Pair<Text, Text>> cfPairs = new ArrayList<>();
 		cfPairs.add(new Pair<Text, Text>(new Text(AccumuloForeman.getArtifactRepository().rawBytes()), null));
 		conf.setFetchColumns(cfPairs);
 		conf.setJarClass(this.getClass());
@@ -81,7 +81,7 @@ public class ArtifactBuilderProcess implements MnemosyneProcess {
 
 		@Override
 		public void map(Key ik, Value iv, Context context) {
-			String row = ik.getRow().toString();//This is the Artifact ID
+			String row = ik.getRow().toString(); // This is the Artifact ID
 			int lineNumber = Integer.parseInt(ik.getColumnQualifier().toString());
 			String raw = iv.toString();
 			artifactForeman.register(row, lineNumber, raw);

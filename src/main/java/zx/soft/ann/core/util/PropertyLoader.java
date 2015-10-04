@@ -88,16 +88,4 @@ public abstract class PropertyLoader {
 		return loadProperties(name, Thread.currentThread().getContextClassLoader());
 	}
 
-	// public static void test()
-	// {
-	// Properties prop =
-	// PropertyLoader.loadProperties("conf.mnemosyne-site.conf");
-	// Set<java.util.Map.Entry<Object, Object>> penis = prop.entrySet();
-	// Iterator<Entry<Object,Object>> it = penis.iterator();
-	// while(it.hasNext())
-	// {
-	// Entry<Object,Object > entry = it.next();
-	// System.out.println(entry.getKey()+" "+entry.getValue());
-	// }
-	// }
 }

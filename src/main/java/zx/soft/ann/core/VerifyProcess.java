@@ -15,6 +15,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.basic.BasicMLData;
 import org.encog.neural.networks.BasicNetwork;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.conf.HadoopJobConfiguration;
 import zx.soft.ann.core.exception.ProcessException;
@@ -24,23 +26,23 @@ import zx.soft.ann.core.model.Artifact;
 import zx.soft.ann.core.util.foreman.AccumuloForeman;
 import zx.soft.ann.core.util.foreman.HadoopForeman;
 
-@SuppressWarnings("unused")
 public class VerifyProcess implements MnemosyneProcess {
 
-	//	private static final Logger logger = Logger.getLogger(VerifyProcess.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(VerifyProcess.class);
 
 	@Override
 	public void process() throws ProcessException {
 		artifactForeman.connect();
 		List<Artifact> artifacts = artifactForeman.returnArtifacts();
 		for (Artifact artifact : artifacts) {
+			logger.info("Verifying at: {}.", artifact.getArtifactId());
 			HadoopForeman hForeman = new HadoopForeman();
 			HadoopJobConfiguration conf = new HadoopJobConfiguration();
 			conf.setJobName(HadoopJobConfiguration.buildJobName(this.getClass()));
 			conf.setMapperClass(VerifyMapper.class);
 			conf.setJarClass(this.getClass());
 			conf.overrideDefaultTable(AccumuloForeman.getArtifactRepositoryName());
-			Collection<Pair<Text, Text>> cfPairs = new ArrayList<Pair<Text, Text>>();
+			Collection<Pair<Text, Text>> cfPairs = new ArrayList<>();
 			cfPairs.add(new Pair<Text, Text>(new Text(AccumuloForeman.getArtifactRepository().verifyEntry()), null));
 			conf.setFetchColumns(cfPairs);
 			conf.setInputFormatClass(AccumuloInputFormat.class);
@@ -57,24 +59,25 @@ public class VerifyProcess implements MnemosyneProcess {
 	public static class VerifyMapper extends Mapper<Key, Value, Writable, Writable> {
 		@Override
 		public void map(Key ik, Value iv, Context context) {
-			//inflate the appropriate NN
-			//this is the ArtifactId
+			// inflate the appropriate NN
+			// this is the ArtifactId
 
 			String artifactId = ik.getRow().toString();
-			//VERIFY_ENTRY
+			// VERIFY_ENTRY
 			ik.getColumnFamily().toString();
-			//timestamp
+			// timestamp
 			ik.getColumnQualifier().toString();
 
-			//input | output
+			// input | output
 			String inOut = iv.toString();
 
 			double[] input = getInput(inOut);
-			System.out.println("FOR INPUT:");
+			StringBuffer sb = new StringBuffer();
 			for (double in : input) {
-				System.out.print(in + " ");
+				sb.append(in).append(" ");
 			}
-			System.out.println();
+			logger.info("FOR INPUT: {}.", sb.toString());
+
 			double output = getOutput(inOut);
 
 			try {
@@ -83,11 +86,11 @@ public class VerifyProcess implements MnemosyneProcess {
 					MLData out = ntw.compute(new BasicMLData(input));
 					double[] expected = out.getData();
 
+					StringBuffer ex = new StringBuffer();
 					for (double expect : expected) {
-						System.out.print(expect + " ");
+						sb.append(expect).append(" ");
 					}
-					System.out.println();
-					System.out.println(" Expected:" + output);
+					logger.info("{} Expected: {}.", ex.toString(), output);
 					aForeman.associateOutput(artifactId, expected, output);
 				}
 			} catch (RepositoryException e) {

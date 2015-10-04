@@ -8,7 +8,7 @@ import zx.soft.ann.conf.CongressNetworkConf;
 public class BinaryUtils {
 
 	public static double[] toBinary(ClassificationNetworkConf conf, double[] toReturn, boolean isInput) {
-		ArrayList<Double> binaryDoubles = new ArrayList<Double>();
+		ArrayList<Double> binaryDoubles = new ArrayList<>();
 		int padding = 0;
 		if (isInput) {
 			String binString = Long.toBinaryString(conf.getInputMax()).replace(' ', '0');
@@ -52,7 +52,7 @@ public class BinaryUtils {
 	}
 
 	public static double[] toBinary(CongressNetworkConf conf, double[] toReturn, boolean isInput, int numOfInputs) {
-		ArrayList<Double> binaryDoubles = new ArrayList<Double>();
+		ArrayList<Double> binaryDoubles = new ArrayList<>();
 		int padding = 0;
 		if (isInput) {
 			String binString = Long.toBinaryString(numOfInputs).replace(' ', '0');

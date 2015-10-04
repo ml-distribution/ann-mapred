@@ -2,8 +2,15 @@ package zx.soft.ann.core.util;
 
 public enum CLIConstants {
 
-	START("analyze"), SETUP("setup"), BUILD("build"), CONSTRUCT("construct"), TRAIN("train"), SAVE("save"), INFLATE(
-			"inflate"), INGEST("ingest"), VERIFY("verify");
+	START("analyze"), //
+	SETUP("setup"), //
+	BUILD("build"), //
+	CONSTRUCT("construct"), //
+	TRAIN("train"), //
+	SAVE("save"), //
+	INFLATE("inflate"), //
+	INGEST("ingest"), //
+	VERIFY("verify");
 
 	String title;
 

@@ -5,7 +5,7 @@ import java.util.Vector;
 
 public class OutputSet<K extends Number> {
 
-	private List<List<K>> outputSet = new Vector<List<K>>();
+	private List<List<K>> outputSet = new Vector<>();
 
 	public OutputSet() {
 		//

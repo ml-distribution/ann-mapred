@@ -3,8 +3,6 @@ package zx.soft.ann.core.util.foreman;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
@@ -19,6 +17,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.conf.HadoopJobConfiguration;
 import zx.soft.ann.core.exception.HadoopException;
@@ -26,7 +26,7 @@ import zx.soft.ann.core.util.MnemosyneConstants;
 
 public class HadoopForeman extends Configured implements Tool {
 
-	private final static Logger log = Logger.getLogger(HadoopForeman.class.getName());
+	private final static Logger logger = LoggerFactory.getLogger(HadoopForeman.class);
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Job getHadoopJob(HadoopJobConfiguration conf) throws HadoopException {
@@ -44,7 +44,7 @@ public class HadoopForeman extends Configured implements Tool {
 							new URI("/cache/libthrift-0.6.1.jar"), new URI("/cache/log4j-1.2.16.jar") },
 							job.getConfiguration());
 			job.setJobName(conf.getJobName());
-			System.out.println("Setting jar class " + conf.getJarClass());
+			logger.info("Setting jar class: {}", conf.getJarClass());
 			((JobConf) job.getConfiguration()).setJar("/opt/mnemosyne.jar");
 			job.setJarByClass(conf.getJarClass());
 			job.setMapperClass(conf.getMapperClass());
@@ -90,9 +90,8 @@ public class HadoopForeman extends Configured implements Tool {
 			return job;
 
 		} catch (IOException e) {
-			String gripe = "Could not configure a Hadoop job";
-			log.log(Level.SEVERE, gripe, e);
-			throw new HadoopException(gripe, e);
+			logger.error("Could not configure a Hadoop job: {}", e);
+			throw new HadoopException("Could not configure a Hadoop job", e);
 
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
@@ -108,9 +107,8 @@ public class HadoopForeman extends Configured implements Tool {
 		try {
 			ToolRunner.run(this, new String[] {});
 		} catch (Exception e) {
-			String gripe = "Could not start a Hadoop job";
-			log.log(Level.SEVERE, gripe, e);
-			throw new HadoopException(gripe, e);
+			logger.error("Could not start a Hadoop job: {}", e);
+			throw new HadoopException("Could not start a Hadoop job", e);
 		}
 		return true;
 	}

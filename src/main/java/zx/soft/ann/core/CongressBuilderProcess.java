@@ -39,7 +39,7 @@ public class CongressBuilderProcess implements MnemosyneProcess {
 			conf.setMapperClass(CongressBuilderMapper.class);
 			conf.setJarClass(this.getClass());
 			conf.overrideDefaultTable(AccumuloForeman.getArtifactRepositoryName());
-			Collection<Pair<Text, Text>> cfPairs = new ArrayList<Pair<Text, Text>>();
+			Collection<Pair<Text, Text>> cfPairs = new ArrayList<>();
 			cfPairs.add(new Pair<Text, Text>(new Text(artifact.getArtifactId()), null));
 			conf.setFetchColumns(cfPairs);
 			conf.setInputFormatClass(AccumuloInputFormat.class);
@@ -61,7 +61,7 @@ public class CongressBuilderProcess implements MnemosyneProcess {
 			NNMetadata metadata = NNMetadata.inflate(iv.toString(), ik.getRow().toString());
 			int inputNeuronCount = BinaryUtils.sizeOfBinary(metadata.getInputMax())
 					* metadata.getInputNameFields().size();
-			//create a couple hundred neurons
+			// create a couple hundred neurons
 			CongressNetworkConf conf = new CongressNetworkConf();
 			conf.setNumberOfInputs(inputNeuronCount);
 			conf.setNumberOfNeurons(20);
@@ -72,7 +72,6 @@ public class CongressBuilderProcess implements MnemosyneProcess {
 				processor.constructNetworks(metadata.getArtifactId());
 			} catch (RepositoryException e) {
 				String gripe = "Access to the Repository Services died";
-				//				log.log(Level.SEVERE,gripe,e);
 				throw new StopMapperException(gripe, e);
 			}
 		}

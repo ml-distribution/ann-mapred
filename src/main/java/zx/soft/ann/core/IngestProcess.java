@@ -3,8 +3,6 @@ package zx.soft.ann.core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -13,6 +11,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.conf.HadoopJobConfiguration;
 import zx.soft.ann.core.exception.ProcessException;
@@ -32,13 +32,14 @@ import zx.soft.ann.core.util.foreman.HadoopForeman;
  */
 public class IngestProcess implements MnemosyneProcess {
 
+	private static Logger logger = LoggerFactory.getLogger(IngestProcess.class);
+
 	/**
 	 * The UUID used to make an artifact id
 	 */
 	static String uuid;
-	static List<Integer> linesProcessed = new ArrayList<Integer>();
+	static List<Integer> linesProcessed = new ArrayList<>();
 	static String fileName = "";
-	static Logger log = Logger.getLogger(IngestProcess.class.getName());
 
 	/**
 	 * Multiple files to ingest
@@ -75,29 +76,26 @@ public class IngestProcess implements MnemosyneProcess {
 			conf.setOutputKeyClass(Text.class);
 			conf.setOutputValueClass(IntWritable.class);
 			hForeman.runJob(conf);
-
 		}
-
 	}
 
 	/**
 	 * Throws every line of a file into accumulo
 	 * @author cam
-	 *
 	 */
 	public static class IngestMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+
 		@Override
 		public void map(LongWritable ik, Text iv, Context context) {
 			try {
 				aForeman.add(AccumuloForeman.getArtifactRepositoryName(), ArtifactIdFactory.buildArtifactId(uuid,
 						fileName), AccumuloForeman.getArtifactRepository().rawBytes(), ik.toString(), iv.toString());
 			} catch (RepositoryException e) {
-				String gripe = "Could not access the Repository Services";
-				log.log(Level.SEVERE, gripe, e);
-				throw new StopMapperException(gripe, e);
+				logger.error("Could not access the Repository Services: {}", e.toString());
+				throw new StopMapperException("Could not access the Repository Services", e);
 			}
-
 		}
+
 	}
 
 }

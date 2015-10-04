@@ -3,8 +3,6 @@ package zx.soft.ann.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
@@ -18,6 +16,8 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.ann.conf.ClassificationNetworkConf;
 import zx.soft.ann.conf.HadoopJobConfiguration;
@@ -42,11 +42,12 @@ import zx.soft.ann.core.util.foreman.TrainForeman;
  */
 public class TrainProcess implements MnemosyneProcess {
 
+	private static final Logger loggger = LoggerFactory.getLogger(TrainProcess.class);
+
 	/**
 	 * Represents the number of artifact inputs processed
 	 */
 	private static int round = 0;
-	private static final Logger log = Logger.getLogger(TrainProcess.class.getName());
 
 	/**
 	 * For every artifact (therefore for every network) Call the train mapper
@@ -62,7 +63,7 @@ public class TrainProcess implements MnemosyneProcess {
 			conf.setMapperClass(NNTrainMapper.class);
 			conf.setJarClass(this.getClass());
 			conf.overrideDefaultTable(AccumuloForeman.getArtifactRepositoryName());
-			Collection<Pair<Text, Text>> cfPairs = new ArrayList<Pair<Text, Text>>();
+			Collection<Pair<Text, Text>> cfPairs = new ArrayList<>();
 			cfPairs.add(new Pair<Text, Text>(new Text(artifact.getArtifactId() + ":FIELD"), null));
 			conf.setFetchColumns(cfPairs);
 			conf.setInputFormatClass(AccumuloInputFormat.class);
@@ -87,7 +88,7 @@ public class TrainProcess implements MnemosyneProcess {
 				aForeman.connect();
 				tForeman.connect();
 
-				log.log(Level.INFO, "Grabbing the base network...");
+				loggger.info("Grabbing the base network...");
 				BasicNetwork base = null;
 				ClassificationNetworkConf baseConf = null;
 				double error = .003;
@@ -107,7 +108,7 @@ public class TrainProcess implements MnemosyneProcess {
 					tForeman.register(ik.getRow().toString(), input, output);
 					round++;
 				} else if (base != null) {
-					log.log(Level.INFO, "Training ...");
+					loggger.info("Training ...");
 					long start = System.currentTimeMillis();
 					long timeout = baseConf.getTimeout();
 					int epochTimeout = baseConf.getEpochTimeout();
@@ -123,7 +124,7 @@ public class TrainProcess implements MnemosyneProcess {
 					do {
 						train.iteration();
 						elapsed = System.currentTimeMillis() - start;
-						log.log(Level.INFO, "Round:" + round + " Epoch #" + epoch + " Error:" + train.getError()
+						loggger.info("Round:" + round + " Epoch #" + epoch + " Error:" + train.getError()
 								+ " acceptable error:" + error + " Elapsed:" + elapsed + " Timeout:"
 								+ (elapsed > timeout));
 						epoch++;
@@ -136,9 +137,8 @@ public class TrainProcess implements MnemosyneProcess {
 
 				}
 			} catch (DataspaceException e3) {
-				String gripe = "Could not access Repository Services";
-				log.log(Level.SEVERE, gripe, e3);
-				throw new StopMapperException(gripe, e3);
+				loggger.error("Could not access Repository Services: [}", e3.toString());
+				throw new StopMapperException("Could not access Repository Services", e3);
 			}
 
 		}

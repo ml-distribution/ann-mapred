@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 
 public class NNMetadata {
 
-	Map<String, List<String>> fieldMap = new HashMap<String, List<String>>();
+	Map<String, List<String>> fieldMap = new HashMap<>();
 	private String artifactId = "";
 
 	public NNMetadata() {
@@ -47,7 +47,7 @@ public class NNMetadata {
 		if (fieldMap.containsKey(shortField)) {
 			fieldMap.get(shortField).add(fieldValue);
 		} else {
-			ArrayList<String> toAdd = new ArrayList<String>();
+			ArrayList<String> toAdd = new ArrayList<>();
 			toAdd.add(fieldValue);
 			fieldMap.put(shortField, toAdd);
 		}

@@ -44,7 +44,7 @@ public class CongressTrainProcess implements MnemosyneProcess {
 			conf.setMapperClass(CongressTrainMapper.class);
 			conf.setJarClass(this.getClass());
 			conf.overrideDefaultTable(AccumuloForeman.getArtifactRepositoryName());
-			Collection<Pair<Text, Text>> cfPairs = new ArrayList<Pair<Text, Text>>();
+			Collection<Pair<Text, Text>> cfPairs = new ArrayList<>();
 			cfPairs.add(new Pair<Text, Text>(new Text(artifact.getArtifactId() + ":FIELD"), null));
 			conf.setFetchColumns(cfPairs);
 			conf.setInputFormatClass(AccumuloInputFormat.class);
@@ -84,19 +84,19 @@ public class CongressTrainProcess implements MnemosyneProcess {
 					Neuron toTrain = aForeman.getATrainableNeuron(artifactId);
 					log.log(Level.INFO, "FOUND THIS ONE" + toTrain.getHash());
 
-					InputSet<Integer> is = new InputSet<Integer>();
-					OutputSet<Integer> os = new OutputSet<Integer>();
+					InputSet<Integer> is = new InputSet<>();
+					OutputSet<Integer> os = new OutputSet<>();
 					//num of inputs = number of weights
 					//num of outputs = 2
 
 					double[] input = NNInput.inflate(conf, iv.toString(), numOfInputs);
-					List<Integer> set = new ArrayList<Integer>();
+					List<Integer> set = new ArrayList<>();
 					for (double in : input) {
 						set.add((int) in);
 					}
 					is.addSet(set);
 					double[] output = NNOutput.inflate(iv.toString());
-					List<Integer> outset = new ArrayList<Integer>();
+					List<Integer> outset = new ArrayList<>();
 					for (double out : output) {
 						outset.add((int) out);
 					}

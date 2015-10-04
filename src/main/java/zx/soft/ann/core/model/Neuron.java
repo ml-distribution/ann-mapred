@@ -18,7 +18,7 @@ public class Neuron implements Serializable {
 	private double threshold = 0.0;
 	private double learningRate = 0.0;
 	private double error = 1;
-	private List<Double> weights = new Vector<Double>();
+	private List<Double> weights = new Vector<>();
 	private static final Logger log = LoggerFactory.getLogger(Neuron.class);
 	private String hash = "";
 
@@ -155,7 +155,7 @@ public class Neuron implements Serializable {
 
 	private void addWeight(String w) {
 		if (this.weights == null) {
-			this.weights = new Vector<Double>();
+			this.weights = new Vector<>();
 		}
 		this.weights.add(Double.parseDouble(w));
 

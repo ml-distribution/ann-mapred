@@ -9,7 +9,6 @@ public class TrainForeman implements Foreman {
 	private ArtifactForeman artifactForeman = new ArtifactForeman();
 
 	public TrainForeman() {
-		//
 	}
 
 	public void connect() throws DataspaceException {

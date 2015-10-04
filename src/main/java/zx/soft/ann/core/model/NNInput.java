@@ -11,7 +11,6 @@ public class NNInput {
 		String[] inputs = doubles.split(",");
 		double[] toReturn = new double[inputs.length];
 		for (int i = 0; i < inputs.length; i++) {
-
 			toReturn[i] = Double.parseDouble(inputs[i].replace("(", ""));
 		}
 

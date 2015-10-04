@@ -5,7 +5,7 @@ import java.util.Vector;
 
 public class InputSet<K extends Number> {
 
-	private List<List<K>> inputSet = new Vector<List<K>>();
+	private List<List<K>> inputSet = new Vector<>();
 
 	public InputSet() {
 		//
